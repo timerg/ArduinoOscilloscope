@@ -1,3 +1,5 @@
+
+
 //AnyChart
 anychart.onDocumentLoad(function () {
     // set chart type
@@ -51,12 +53,12 @@ function startStream() {
     );
 
     streamButton.onclick = function (){
-
-        // clears interval which stops streaming
-        clearInterval(myVar);
-        streamButton.onclick = function () {
-            startStream();
-        };
-        streamButton.innerHTML = "Start" + "\nstream";
+        socket.emit('start')
+        // // clears interval which stops streaming
+        // clearInterval(myVar);
+        // streamButton.onclick = function () {
+        //     startStream();
+        // };
+        // streamButton.innerHTML = "Start" + "\nstream";
     };
 };

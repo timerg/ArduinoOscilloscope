@@ -1,62 +1,32 @@
 // SocketiO server
-var server = require('http').createServer(handler);
-var fs = require('fs');
-var url = require('url');
 var SerialPort = require('serialport');
-var io = require('socket.io')(server)
-var express = require('express');
+var express = require('express')
 var app = express();
-var path = require('path');
-
-var dir = path.join(__dirname, 'public');
-
-app.use(express.static(dir));
-
-
-function handler (request, response) {
-    var upath = url.parse(request.url).pathname;
-    switch(upath){
-        case '/interface.html':
-            fs.readFile(__dirname + upath, function(error, data) {
-                if (error){
-                  response.writeHead(404);
-                  response.write("opps this doesn't exist - 404");
-                } else {
-                  response.writeHead(200, {"Content-Type": "text/html"});
-                  response.write(data, "utf8");
-                }
-                response.end();
-            });
-            break;
-        default:
-            response.writeHead(404);
-            response.write("opps this doesn't exist - 404");
-            response.end();
-            break;
-    }
-}
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
 server.listen(3000);
-io.listen(server);
-
-io.on('connection', function(client){
-    console.log('a user connected');
+app.get('/', function (req, res) {
+  res.sendFile(__dirname + '/interface/interface.html');
 });
+app.use(express.static(__dirname + '/'));
 
-io.on('start', () => {
-    console.log("start");
-})
+
+io.on('connection', function (socket) {
+  socket.on('start', function () {
+    console.log("hey You");
+  });
+});
 
 // Serial Port
 
-// var port = new SerialPort('/dev/tty.SLAB_USBtoUART', {
-//   baudRate: 9600
-// });
-//
-// port.on('error', function(err) {
-//   console.log('Error: ', err.message);
-// })
-//
-// port.on('data', function (data) {
-//   console.log('Data:', data);
-// });
+var port = new SerialPort('/dev/tty.usbserial-A105N9Y1', {
+  baudRate: 9600
+});
+port.on('error', function(err) {
+  console.log('Error: ', err.message);
+})
+
+port.on('data', function (data) {
+  console.log('Data:', data);
+});

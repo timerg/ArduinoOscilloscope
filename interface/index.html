@@ -4,7 +4,7 @@
 <!-- </canvas> -->
 <canvas id="fg" width="640" height="800" style="position: absolute; z-index: -1">
 </canvas>
-<button onclick="stopTextColor();">Stop</button>
+<button onclick="stopDataGen();">Stop</button>
 <div class="slidecontainer">
   <input type="range" min="1" max="50" value="1" class="slider" id="myRange" oninput="rescale(this.value)">
 </div>
@@ -13,6 +13,9 @@
 const BUFFLIMIT = 50;
 const DATASIZE = 1280;
 const BUFFSIZE = DATASIZE * BUFFLIMIT;
+var FRAMELIMIT = 10;
+var FRAMESIZE = DATASIZE * FRAMELIMIT;
+
 
 const CBOARDERL = 50;		// left gap btw canvas and window
 const CBOARDERT = 100;		// top gap btw canvas and window
@@ -37,20 +40,23 @@ var buffer = new Uint8Array(BUFFSIZE);
 var buffCount = 0; //Indicate the buffer position into which data is inserted
 	// Buffer for x
 var xbuffer = new Float32Array(BUFFSIZE);
-// Only write frameSize bytes from the beginning og xbuffer. The others just ignore
-function scaleX(frameSize){
-	for(var i = 0; i < frameSize; i++){
-		xbuffer[i] = i / (frameSize) * PWIDTH + CBOARDERL + PBOARDERL;
-	}
+
+
+// User Control interface
+	// Frame Slider
+function rescale(val){
+	FRAMELIMIT = val;
+	FRAMESIZE = val * DATASIZE;
+	buffCount = 0;
+	scaleX(FRAMESIZE)
+	
 }
 
 
-for(let i = 0; i < BUFFSIZE; i++){
-	//x offset
-	xbuffer[i] = i / BUFFSIZE * PWIDTH + CBOARDERL + PBOARDERL;
-}
 
-// generate data and trigger data write to buffer event
+// Data Generate
+	// input data
+	// generate data and trigger data write to buffer event
 var genData = window.setInterval( function(){
 	let number;
 	let ran = Math.random();
@@ -61,15 +67,24 @@ var genData = window.setInterval( function(){
 	}
 	window.dispatchEvent(event);     // trigger 'data' event
 }, 100);
-function stopTextColor() {
+function stopDataGen() {
   clearInterval(genData);
 }
+
+	//xbuffer
+		// Only write frameSize bytes from the beginning og xbuffer. The others just ignore
+function scaleX(frameSize){
+	for(var i = 0; i < frameSize; i++){
+		xbuffer[i] = i / (frameSize) * PWIDTH + CBOARDERL + PBOARDERL;
+	}
+}
+scaleX(FRAMESIZE);
 
 
 
 window.addEventListener('data', function(){
 	buffer.set(dataArray, buffCount * DATASIZE); 
-	buffCount = (buffCount + 1) % BUFFLIMIT;
+	buffCount = (buffCount + 1) % FRAMELIMIT;
 })
 
 
@@ -88,19 +103,12 @@ fg.strokeStyle="#000000";
 bg.fillStyle = "white";
 bg.strokeStyle="#000000";
 
-
-function rescale(val){
-	<!-- FRAMESIZENUM = val; -->
-	<!-- FRAMESIZE = DATASIZE * val; -->
-	
-}
-
 // Draw path
 function drawChunk(){
 	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
 	fg.beginPath();
 	let num = 0;
-	for(let i = 0; i < BUFFSIZE; i++){
+	for(let i = 0; i < FRAMESIZE; i++){
 		num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
 		fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
 	}

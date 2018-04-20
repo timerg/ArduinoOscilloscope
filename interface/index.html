@@ -2,27 +2,28 @@
 <body> 
 <!-- <canvas id="bg" width="640" height="480" style="position: absolute; z-index: 0"> -->
 <!-- </canvas> -->
-<canvas id="fg" width="640" height="800" style="position: absolute; z-index: -1">
+<canvas id="fg" width="1000" height="800" style="position: absolute; z-index: -1">
 </canvas>
-<button onclick="stopDataGen();">Stop</button>
+<button id='dataGen'onclick="genDataEvent();">Start Data Generation</button>
 <div class="slidecontainer">
   <input type="range" min="1" max="50" value="1" class="slider" id="myRange" oninput="rescale(this.value)">
 </div>
 <script> 
  
 const BUFFLIMIT = 50;
+const DATAGAP = 10
 const DATASIZE = 1280;
 const BUFFSIZE = DATASIZE * BUFFLIMIT;
 var FRAMELIMIT = 10;
 var FRAMESIZE = DATASIZE * FRAMELIMIT;
 
 
-const CBOARDERL = 50;		// left gap btw canvas and window
+const CBOARDERL = 200;		// left gap btw canvas and window
 const CBOARDERT = 100;		// top gap btw canvas and window
 const PBOARDERL = 10;		// left gap btw plot line and canvas
 const PBOARDERT = 10;		// top gap btw plot line and canvas
 const PBOARDERB = 20;
-const CWIDTH = 500;
+const CWIDTH = 800;
 const PWIDTH = CWIDTH - PBOARDERL*2;
 const CHEIGHT = 400;
 const PHEIGHT = CHEIGHT - PBOARDERB;
@@ -57,18 +58,30 @@ function rescale(val){
 // Data Generate
 	// input data
 	// generate data and trigger data write to buffer event
-var genData = window.setInterval( function(){
-	let number;
-	let ran = Math.random();
-	for(var i = 0; i < DATASIZE; i++){
-		//number = Math.floor(Math.random() * (255 - 0) + 0, 0);
-		number = Math.floor(127 * (Math.sin((i / DATASIZE * 2 - 0.5) * Math.PI) + 1) * ran);
-		dataArray[i] = number;
+var genDataIntervalID;
+function genData() {
+	genDataIntervalID = window.setInterval( function(){
+		let number;
+		let ran = Math.random();
+		for(var i = 0; i < DATASIZE; i++){
+			//number = Math.floor(Math.random() * (255 - 0) + 0, 0);
+			number = Math.floor(127 * (Math.sin((i / DATASIZE * 2 - 0.5) * Math.PI) + 1) * ran);
+			dataArray[i] = number;
+		}
+		window.dispatchEvent(event);     // trigger 'data' event
+	}, 100);
+}
+function genDataEvent(){
+	var dataGenButton = document.getElementById('dataGen');
+	dataGenButton.innerHTML = "Stop Data Generation";
+	genData();
+	dataGenButton.onclick = function(){
+		clearInterval(genDataIntervalID);
+		dataGenButton.innerHTML = "Start Data Generation";
+		dataGenButton.onclick = function(){
+			dataGen()
+		}
 	}
-	window.dispatchEvent(event);     // trigger 'data' event
-}, 100);
-function stopDataGen() {
-  clearInterval(genData);
 }
 
 	//xbuffer
@@ -79,7 +92,6 @@ function scaleX(frameSize){
 	}
 }
 scaleX(FRAMESIZE);
-
 
 
 window.addEventListener('data', function(){

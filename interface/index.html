@@ -1,7 +1,5 @@
 <html> 
 <body> 
-<!-- <canvas id="bg" width="640" height="480" style="position: absolute; z-index: 0"> -->
-<!-- </canvas> -->
 <canvas id="fg" width="1000" height="800" style="position: absolute; z-index: -1">
 </canvas>
 <button id='dataGen'onclick="genDataEvent();">Start Data Generation</button>
@@ -25,7 +23,7 @@ const PBOARDERT = 10;		// top gap btw plot line and canvas
 const PBOARDERB = 20;
 const CWIDTH = 800;
 const PWIDTH = CWIDTH - PBOARDERL*2;
-const CHEIGHT = 400;
+const CHEIGHT = 600;
 const PHEIGHT = CHEIGHT - PBOARDERB;
 const YSCALE = (PHEIGHT / 255);	// scale data value to plot size
 
@@ -49,8 +47,7 @@ function rescale(val){
 	FRAMELIMIT = val;
 	FRAMESIZE = val * DATASIZE;
 	buffCount = 0;
-	scaleX(FRAMESIZE)
-	
+	scaleX(FRAMESIZE)	
 }
 
 
@@ -69,7 +66,7 @@ function genData() {
 			dataArray[i] = number;
 		}
 		window.dispatchEvent(event);     // trigger 'data' event
-	}, 100);
+	}, 1);
 }
 function genDataEvent(){
 	var dataGenButton = document.getElementById('dataGen');
@@ -79,7 +76,7 @@ function genDataEvent(){
 		clearInterval(genDataIntervalID);
 		dataGenButton.innerHTML = "Start Data Generation";
 		dataGenButton.onclick = function(){
-			dataGen()
+			genDataEvent()
 		}
 	}
 }
@@ -94,6 +91,9 @@ function scaleX(frameSize){
 scaleX(FRAMESIZE);
 
 
+
+
+
 window.addEventListener('data', function(){
 	buffer.set(dataArray, buffCount * DATASIZE); 
 	buffCount = (buffCount + 1) % FRAMELIMIT;
@@ -106,17 +106,15 @@ window.addEventListener('data', function(){
 // Canvas 
 var fc = document.getElementById("fg"),
 		fg = fc.getContext("2d");
-var bc = document.createElement("canvas"),
-		bg = bc.getContext("2d");
 
-fg.fillStyle = "lightgray";
+fg.fillStyle = "black";
+fg.lineWidth = 3;
 fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
-fg.strokeStyle="#000000";
-bg.fillStyle = "white";
-bg.strokeStyle="#000000";
+fg.strokeStyle="yellow";
 
 // Draw path
 function drawChunk(){
+	fg.fillStyle = "black"
 	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
 	fg.beginPath();
 	let num = 0;
@@ -125,6 +123,8 @@ function drawChunk(){
 		fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
 	}
 	fg.stroke();
+	fg.fillStyle = "#ffffff"
+	fg.fillRect(xbuffer[buffCount * DATASIZE], CBOARDERT, 1, CHEIGHT);
 	requestAnimationFrame(drawChunk);
 
 }

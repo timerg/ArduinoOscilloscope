@@ -2,7 +2,8 @@
 <body> 
 <canvas id="fg" width="1000" height="800" style="position: absolute; z-index: -1">
 </canvas>
-<button id='dataGen'onclick="genDataEvent();">Start Data Generation</button>
+<button id='dataGen' onclick="genDataEvent();">Start Data Generation</button>
+<button id='drawData' onclick="drawDataEvent();">Run</button>
 <div class="slidecontainer">
   <input type="range" min="1" max="50" value="1" class="slider" id="myRange" oninput="rescale(this.value)">
 </div>
@@ -113,7 +114,8 @@ fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
 fg.strokeStyle="yellow";
 
 // Draw path
-function drawChunk(){
+var drawDataID;
+function drawData(){
 	fg.fillStyle = "black"
 	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
 	fg.beginPath();
@@ -125,11 +127,22 @@ function drawChunk(){
 	fg.stroke();
 	fg.fillStyle = "#ffffff"
 	fg.fillRect(xbuffer[buffCount * DATASIZE], CBOARDERT, 1, CHEIGHT);
-	requestAnimationFrame(drawChunk);
+	drawDataID = requestAnimationFrame(drawData);
 
 }
 
-drawChunk();
+function drawDataEvent(){
+	var drawDataButton = document.getElementById('drawData');
+	drawDataButton.innerHTML = "Stop";
+	drawData();
+	drawDataButton.onclick = function(){
+		cancelAnimationFrame(drawDataID);
+		drawDataButton.innerHTML = "Run";
+		drawDataButton.onclick = function(){
+			drawDataEvent()
+		}
+	}
+}
 
 
 </script> 

@@ -1,24 +1,35 @@
 <html> 
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+</head>
 <body> 
+<!-- <canvas id="interface" width="1500" height="1000" style="position: absolute; z-index: 1"> -->
+<!-- </canvas> -->
 <canvas id="fg" width="1000" height="800" style="position: absolute; z-index: -1">
 </canvas>
 <button id='dataGen' onclick="genDataEvent();">Start Data Generation</button>
 <button id='drawData' onclick="drawDataEvent();">Run</button>
 <div class="slidecontainer">
-  <input type="range" min="1" max="50" value="1" class="slider" id="myRange" oninput="rescale(this.value)">
+  <input type="range" min="1" max="50" value="10" class="slider" id="myRange" oninput="rescale(this.value)">
 </div>
 <script> 
  
+
 const BUFFLIMIT = 50;
 const DATAGAP = 10
 const DATASIZE = 1280;
 const BUFFSIZE = DATASIZE * BUFFLIMIT;
-var FRAMELIMIT = 10;
+var FRAMELIMIT = 50;
 var FRAMESIZE = DATASIZE * FRAMELIMIT;
+var div = 128;		// determine by arduino adc ADCSRA register.  128/64/32/16/8
+const DIVTOSR = 13;	// A factor related to ADC cycles per sample. div only decides the input clk that ADC uses.
 
 
-const CBOARDERL = 200;		// left gap btw canvas and window
-const CBOARDERT = 100;		// top gap btw canvas and window
+
+//-- Canvas position
+var CBOARDERL = 200;		// left gap btw canvas and window
+var CBOARDERT = 100;		// top gap btw canvas and window
 const PBOARDERL = 10;		// left gap btw plot line and canvas
 const PBOARDERT = 10;		// top gap btw plot line and canvas
 const PBOARDERB = 20;
@@ -28,10 +39,31 @@ const CHEIGHT = 600;
 const PHEIGHT = CHEIGHT - PBOARDERB;
 const YSCALE = (PHEIGHT / 255);	// scale data value to plot size
 
-// Event
+
+var fc = document.getElementById("fg"),
+		fg = fc.getContext("2d");
+
+function createFront() {
+	console.log("happy")
+    fc.width = window.innerWidth;
+	CBOARDERL = fc.width * 0.1
+    fc.height = window.innerHeight;
+	CBOARDERT = fc.height * 0.1
+	
+	fg.fillStyle = "black";
+	fg.lineWidth = 3;
+	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
+	fg.strokeStyle="yellow";
+}
+createFront();
+window.onresize = createFront();
+
+
+
+//--- Event
 var event = new Event('data');
 
-// Data and Buffer
+//--- Data and Buffer
 	//Data
 var data = new ArrayBuffer(DATASIZE);
 var dataArray = new Uint8Array(data);
@@ -42,7 +74,7 @@ var buffCount = 0; //Indicate the buffer position into which data is inserted
 var xbuffer = new Float32Array(BUFFSIZE);
 
 
-// User Control interface
+//--- User Control interface
 	// Frame Slider
 function rescale(val){
 	FRAMELIMIT = val;
@@ -53,7 +85,7 @@ function rescale(val){
 
 
 
-// Data Generate
+//---Data Generate
 	// input data
 	// generate data and trigger data write to buffer event
 var genDataIntervalID;
@@ -67,7 +99,7 @@ function genData() {
 			dataArray[i] = number;
 		}
 		window.dispatchEvent(event);     // trigger 'data' event
-	}, 1);
+	}, 100);
 }
 function genDataEvent(){
 	var dataGenButton = document.getElementById('dataGen');
@@ -82,8 +114,10 @@ function genDataEvent(){
 	}
 }
 
-	//xbuffer
-		// Only write frameSize bytes from the beginning og xbuffer. The others just ignore
+//---xbuffer and Time calculation		
+	// Only write frameSize slots from the beginning of xbuffer. Other slots are ignored
+	// The change of division factor doesn't make difference to xbuffer because the datasize is always same
+	// But the x label (s/div) should be modified
 function scaleX(frameSize){
 	for(var i = 0; i < frameSize; i++){
 		xbuffer[i] = i / (frameSize) * PWIDTH + CBOARDERL + PBOARDERL;
@@ -91,29 +125,39 @@ function scaleX(frameSize){
 }
 scaleX(FRAMESIZE);
 
+	// Time per frame =  DATASIZE * Division_Factor / Clock_Frequency
+		// Max_Division_Factor = 128
+		// Clock_Frequency = 16M Hz
+		// Thus the time interval between points is Dvision_Factor * 1u/16 s
+	//This function write 0 to buffer while there is no data input 
+var write0ToBufferID;
+function write0ToBuffer(){
+	write0ToBufferID = window.setInterval(function(){
+		let startPoint = buffCount*DATASIZE;
+		for(let i = startPoint; i < startPoint + DATASIZE; i++){
+			buffer[i] = 0;
+		}
+		buffCount = (buffCount + 1) % FRAMELIMIT;
+	}, div * DATASIZE * DIVTOSR / 16000)
+}
+
 
 
 
 
 window.addEventListener('data', function(){
+	clearInterval(write0ToBufferID);
 	buffer.set(dataArray, buffCount * DATASIZE); 
 	buffCount = (buffCount + 1) % FRAMELIMIT;
+	write0ToBuffer();
 })
 
 
 
 
 
-// Canvas 
-var fc = document.getElementById("fg"),
-		fg = fc.getContext("2d");
-
-fg.fillStyle = "black";
-fg.lineWidth = 3;
-fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
-fg.strokeStyle="yellow";
-
-// Draw path
+//--- Canvas 
+//--- Draw path
 var drawDataID;
 function drawData(){
 	fg.fillStyle = "black"
@@ -126,9 +170,8 @@ function drawData(){
 	}
 	fg.stroke();
 	fg.fillStyle = "#ffffff"
-	fg.fillRect(xbuffer[buffCount * DATASIZE], CBOARDERT, 1, CHEIGHT);
+	fg.fillRect(xbuffer[buffCount * DATASIZE], CBOARDERT, 3, CHEIGHT);
 	drawDataID = requestAnimationFrame(drawData);
-
 }
 
 function drawDataEvent(){

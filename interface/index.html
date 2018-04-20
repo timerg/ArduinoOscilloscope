@@ -1,0 +1,118 @@
+<html> 
+<body> 
+<!-- <canvas id="bg" width="640" height="480" style="position: absolute; z-index: 0"> -->
+<!-- </canvas> -->
+<canvas id="fg" width="640" height="800" style="position: absolute; z-index: -1">
+</canvas>
+<button onclick="stopTextColor();">Stop</button>
+<div class="slidecontainer">
+  <input type="range" min="1" max="50" value="1" class="slider" id="myRange" oninput="rescale(this.value)">
+</div>
+<script> 
+ 
+const BUFFLIMIT = 50;
+const DATASIZE = 1280;
+const BUFFSIZE = DATASIZE * BUFFLIMIT;
+
+const CBOARDERL = 50;		// left gap btw canvas and window
+const CBOARDERT = 100;		// top gap btw canvas and window
+const PBOARDERL = 10;		// left gap btw plot line and canvas
+const PBOARDERT = 10;		// top gap btw plot line and canvas
+const PBOARDERB = 20;
+const CWIDTH = 500;
+const PWIDTH = CWIDTH - PBOARDERL*2;
+const CHEIGHT = 400;
+const PHEIGHT = CHEIGHT - PBOARDERB;
+const YSCALE = (PHEIGHT / 255);	// scale data value to plot size
+
+// Event
+var event = new Event('data');
+
+// Data and Buffer
+	//Data
+var data = new ArrayBuffer(DATASIZE);
+var dataArray = new Uint8Array(data);
+	// Buffer for y
+var buffer = new Uint8Array(BUFFSIZE);
+var buffCount = 0; //Indicate the buffer position into which data is inserted
+	// Buffer for x
+var xbuffer = new Float32Array(BUFFSIZE);
+// Only write frameSize bytes from the beginning og xbuffer. The others just ignore
+function scaleX(frameSize){
+	for(var i = 0; i < frameSize; i++){
+		xbuffer[i] = i / (frameSize) * PWIDTH + CBOARDERL + PBOARDERL;
+	}
+}
+
+
+for(let i = 0; i < BUFFSIZE; i++){
+	//x offset
+	xbuffer[i] = i / BUFFSIZE * PWIDTH + CBOARDERL + PBOARDERL;
+}
+
+// generate data and trigger data write to buffer event
+var genData = window.setInterval( function(){
+	let number;
+	let ran = Math.random();
+	for(var i = 0; i < DATASIZE; i++){
+		//number = Math.floor(Math.random() * (255 - 0) + 0, 0);
+		number = Math.floor(127 * (Math.sin((i / DATASIZE * 2 - 0.5) * Math.PI) + 1) * ran);
+		dataArray[i] = number;
+	}
+	window.dispatchEvent(event);     // trigger 'data' event
+}, 100);
+function stopTextColor() {
+  clearInterval(genData);
+}
+
+
+
+window.addEventListener('data', function(){
+	buffer.set(dataArray, buffCount * DATASIZE); 
+	buffCount = (buffCount + 1) % BUFFLIMIT;
+})
+
+
+
+
+
+// Canvas 
+var fc = document.getElementById("fg"),
+		fg = fc.getContext("2d");
+var bc = document.createElement("canvas"),
+		bg = bc.getContext("2d");
+
+fg.fillStyle = "lightgray";
+fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
+fg.strokeStyle="#000000";
+bg.fillStyle = "white";
+bg.strokeStyle="#000000";
+
+
+function rescale(val){
+	<!-- FRAMESIZENUM = val; -->
+	<!-- FRAMESIZE = DATASIZE * val; -->
+	
+}
+
+// Draw path
+function drawChunk(){
+	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
+	fg.beginPath();
+	let num = 0;
+	for(let i = 0; i < BUFFSIZE; i++){
+		num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
+		fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
+	}
+	fg.stroke();
+	requestAnimationFrame(drawChunk);
+
+}
+
+drawChunk();
+
+
+</script> 
+</body> 
+
+</html> 

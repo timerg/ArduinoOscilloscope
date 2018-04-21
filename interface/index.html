@@ -1,9 +1,9 @@
-<html> 
+<html>
 <head>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
 </head>
-<body> 
+<body>
 <!-- <canvas id="interface" width="1500" height="1000" style="position: absolute; z-index: 1"> -->
 <!-- </canvas> -->
 <canvas id="fg" width="1000" height="800" style="position: absolute; z-index: -1">
@@ -13,8 +13,8 @@
 <div class="slidecontainer">
   <input type="range" min="1" max="50" value="10" class="slider" id="myRange" oninput="rescale(this.value)">
 </div>
-<script> 
- 
+<script>
+
 
 const BUFFLIMIT = 50;
 const DATAGAP = 10
@@ -33,11 +33,11 @@ var CBOARDERT = 100;		// top gap btw canvas and window
 const PBOARDERL = 10;		// left gap btw plot line and canvas
 const PBOARDERT = 10;		// top gap btw plot line and canvas
 const PBOARDERB = 20;
-const CWIDTH = 800;
-const PWIDTH = CWIDTH - PBOARDERL*2;
-const CHEIGHT = 600;
-const PHEIGHT = CHEIGHT - PBOARDERB;
-const YSCALE = (PHEIGHT / 255);	// scale data value to plot size
+var CWIDTH = 800;
+var PWIDTH = CWIDTH - PBOARDERL*2;
+var CHEIGHT = 600;
+var PHEIGHT = CHEIGHT - PBOARDERB;
+var YSCALE = (PHEIGHT / 255);	// scale data value to plot size
 
 
 var fc = document.getElementById("fg"),
@@ -46,17 +46,22 @@ var fc = document.getElementById("fg"),
 function createFront() {
 	console.log("happy")
     fc.width = window.innerWidth;
-	CBOARDERL = fc.width * 0.1
+	CBOARDERL = fc.width * 0.1;
+    CWIDTH = fc.width * 0.8;
+    PWIDTH = CWIDTH - PBOARDERL*2;
     fc.height = window.innerHeight;
 	CBOARDERT = fc.height * 0.1
-	
+    CHEIGHT = fc.height * 0.8;
+    PHEIGHT = CHEIGHT - PBOARDERB;
+    YSCALE = (PHEIGHT / 255);
+
 	fg.fillStyle = "black";
 	fg.lineWidth = 3;
 	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
 	fg.strokeStyle="yellow";
 }
 createFront();
-window.onresize = createFront();
+$( window ).resize(createFront);
 
 
 
@@ -80,7 +85,7 @@ function rescale(val){
 	FRAMELIMIT = val;
 	FRAMESIZE = val * DATASIZE;
 	buffCount = 0;
-	scaleX(FRAMESIZE)	
+	scaleX(FRAMESIZE);
 }
 
 
@@ -114,7 +119,7 @@ function genDataEvent(){
 	}
 }
 
-//---xbuffer and Time calculation		
+//---xbuffer and Time calculation
 	// Only write frameSize slots from the beginning of xbuffer. Other slots are ignored
 	// The change of division factor doesn't make difference to xbuffer because the datasize is always same
 	// But the x label (s/div) should be modified
@@ -129,7 +134,7 @@ scaleX(FRAMESIZE);
 		// Max_Division_Factor = 128
 		// Clock_Frequency = 16M Hz
 		// Thus the time interval between points is Dvision_Factor * 1u/16 s
-	//This function write 0 to buffer while there is no data input 
+	//This function write 0 to buffer while there is no data input
 var write0ToBufferID;
 function write0ToBuffer(){
 	write0ToBufferID = window.setInterval(function(){
@@ -147,7 +152,7 @@ function write0ToBuffer(){
 
 window.addEventListener('data', function(){
 	clearInterval(write0ToBufferID);
-	buffer.set(dataArray, buffCount * DATASIZE); 
+	buffer.set(dataArray, buffCount * DATASIZE);
 	buffCount = (buffCount + 1) % FRAMELIMIT;
 	write0ToBuffer();
 })
@@ -156,7 +161,7 @@ window.addEventListener('data', function(){
 
 
 
-//--- Canvas 
+//--- Canvas
 //--- Draw path
 var drawDataID;
 function drawData(){
@@ -188,7 +193,7 @@ function drawDataEvent(){
 }
 
 
-</script> 
-</body> 
+</script>
+</body>
 
-</html> 
+</html>

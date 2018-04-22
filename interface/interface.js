@@ -1,71 +1,152 @@
-// Client
 
+
+const BUFFLIMIT = 50;
+const DATAGAP = 10
+const DATASIZE = 1280;
+const BUFFSIZE = DATASIZE * BUFFLIMIT;
+var FRAMELIMIT = 50;
+var FRAMESIZE = DATASIZE * FRAMELIMIT;
+var div = 128;		// determine by arduino adc ADCSRA register.  128/64/32/16/8
+const DIVTOSR = 13;	// A factor related to ADC cycles per sample. div only decides the input clk that ADC uses.
+
+
+
+//-- Canvas position
+var CBOARDERL = 200;		// left gap btw canvas and window
+var CBOARDERT = 100;		// top gap btw canvas and window
+const PBOARDERL = 10;		// left gap btw plot line and canvas
+const PBOARDERT = 10;		// top gap btw plot line and canvas
+const PBOARDERB = 20;
+var CWIDTH = 800;
+var PWIDTH = CWIDTH - PBOARDERL*2;
+var CHEIGHT = 600;
+var PHEIGHT = CHEIGHT - PBOARDERB;
+var YSCALE = (PHEIGHT / 255);	// scale data value to plot size
+
+// Socket io
 var socket = io();
 
-var xval = 0;
+//--- Event
 
 
-anychart.onDocumentReady(function () {
-  // data
-  dataSet = anychart.data.set([
-    {x: 0, value: 100},
-  ]);
-  for(var i = 0; i < 1280; i++){
-    dataSet.append({
-      x: 0,
-      value: 0
-    })
-  }
-  // set chart type
-  var chart = anychart.line();
-  chart.title().text("Click on Chart to Add a Point ");
+//--- Data and Buffer
+	// Buffer for y
+var buffer = new Uint8Array(BUFFSIZE);
+var buffCount = 0; //Indicate the buffer position into which data is inserted
+	// Buffer for x
+var xbuffer = new Float32Array(BUFFSIZE);
 
-  // set data
-  chart.spline(dataSet).markers(null);
 
-  // disable stagger mode. Only one line for x axis labels
-  chart.xAxis().staggerMode(false);
+var fc = document.getElementById("fg"),
+		fg = fc.getContext("2d");
 
-  // set container and draw chart
-  chart.container("container").draw();
+function createFront() {
+    fc.width = window.innerWidth;
+	CBOARDERL = fc.width * 0.1;
+    CWIDTH = fc.width * 0.7;
+    PWIDTH = CWIDTH - PBOARDERL*2;
+    fc.height = window.innerHeight;
+	CBOARDERT = fc.height * 0.1
+    CHEIGHT = fc.height * 0.7;
+    PHEIGHT = CHEIGHT - PBOARDERB;
+    YSCALE = (PHEIGHT / 255);
+    scaleX(FRAMESIZE);
 
-  // first index for new point
-  indexSetter = (dataSet.mapAs().getRowsCount())+1;
+
+	fg.fillStyle = "black";
+	fg.lineWidth = 3;
+	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
+	fg.strokeStyle="yellow";
+}
+
+$( window ).resize(createFront);
+$( document ).ready(createFront);
+
+//--- User Control interface
+	// Frame Slider
+function rescale(val){
+	FRAMELIMIT = val;
+	FRAMESIZE = val * DATASIZE;
+	buffCount = 0;
+	scaleX(FRAMESIZE);
+}
+
+//---Data Generate and Get
+
+//---xbuffer and Time calculation
+	// Only write frameSize slots from the beginning of xbuffer. Other slots are ignored
+	// The change of division factor doesn't make difference to xbuffer because the datasize is always same
+	// But the x label (s/div) should be modified
+function scaleX(frameSize){
+	for(var i = 0; i < frameSize; i++){
+		xbuffer[i] = i / (frameSize) * PWIDTH + CBOARDERL + PBOARDERL;
+	}
+}
+scaleX(FRAMESIZE);
+
+var write0ToBufferID;
+function write0ToBuffer(){
+	write0ToBufferID = window.setInterval(function(){
+		let startPoint = buffCount*DATASIZE;
+		for(let i = startPoint; i < startPoint + DATASIZE; i++){
+			buffer[i] = 0;
+		}
+		buffCount = (buffCount + 1) % FRAMELIMIT;
+	}, div * DATASIZE * DIVTOSR / 16000)
+}
+
+
+
+socket.on('data', function (dataArray){
+    clearInterval(write0ToBufferID);
+    buffer.set(dataArray, buffCount * DATASIZE);
+    buffCount = (buffCount + 1) % FRAMELIMIT;
+    write0ToBuffer();
 });
 
 
-socket.on('data', function (buffer){
-    var rows = new Array(1280);
-    var row;
-    for(var i = 0; i < 1280; i++){
-      rows[i] = {
-        x: xval++,
-        value: buffer[i]
-      };
-      // dataSet.remove(0);
-    }
-    appendData(dataSet, rows, 1280);
-});
+
+function startStream(){
+    socket.emit('start');
+    var streamButton = document.getElementById("streamButton");
+	streamButton.innerHTML = "Stop Stream";
+	streamButton.onclick = function(){
+        socket.emit('stop');
+		streamButton.innerHTML = "Start Stream";
+		streamButton.onclick = function(){
+			startStream()
+		}
+	}
+}
 
 
-function startStream() {
+//--- Canvas
+//--- Draw path
+var drawDataID;
+function drawData(){
+	fg.fillStyle = "black"
+	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
+	fg.beginPath();
+	let num = 0;
+	for(let i = 0; i < FRAMESIZE; i++){
+		num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
+		fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
+	}
+	fg.stroke();
+	fg.fillStyle = "#ffffff"
+	fg.fillRect(xbuffer[buffCount * DATASIZE], CBOARDERT, 3, CHEIGHT);
+	drawDataID = requestAnimationFrame(drawData);
+}
 
-
-  socket.emit('start');
-  // adjust button content
-  var streamButton = document.getElementById("streamButton");
-  streamButton.innerHTML = "Stop" + "\nstream";
-
-  streamButton.onclick = function (){
-    socket.emit('stop');
-    streamButton.onclick = function(){
-      startStream();
-    };
-    streamButton.innerHTML = "Start" + "\nstream";
-  };
-};
-
-
-
-// ln52 buffer data didn't receive
-// modify event listener to more callback
+function drawDataEvent(){
+	var drawDataButton = document.getElementById('drawData');
+	drawDataButton.innerHTML = "Stop";
+	drawData();
+	drawDataButton.onclick = function(){
+		cancelAnimationFrame(drawDataID);
+		drawDataButton.innerHTML = "Run";
+		drawDataButton.onclick = function(){
+			drawDataEvent()
+		}
+	}
+}

@@ -43,17 +43,10 @@ port.on('error', function(err) {
 port.on('open', () => {
   console.log("Port Open");
   parser.on('data', (buffer) => {
-    var arr = Array.prototype.slice.call(buffer, 0)
-    // console.log("Parser On");
-    console.log(buffer[0]);
-    // for(var i = 0; i < 30; i++){
-      io.emit('data', arr);
-    // }
+      io.emit('data', buffer);
   });
 })
 
 port.on('close', () => {
   console.log("Port Close");
 })
-
-

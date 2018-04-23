@@ -6,7 +6,9 @@
 <body>
 <!-- <canvas id="interface" width="1500" height="1000" style="position: absolute; z-index: 1"> -->
 <!-- </canvas> -->
-<canvas id="fg" width="1000" height="800" style="position: absolute; z-index: -1">
+<canvas id="fg" width="1000" height="800" style="position: absolute; z-index: -2">
+</canvas>
+<canvas id="cg" width="1000" height="800" style="position: absolute; z-index: -1">
 </canvas>
 <button id='dataGen' onclick="genDataEvent();">Start Data Generation</button>
 <button id='drawData' onclick="drawDataEvent();">Run</button>
@@ -28,11 +30,10 @@ const DIVTOSR = 13;	// A factor related to ADC cycles per sample. div only decid
 
 
 //-- Canvas position
-var CBOARDERL = 200;		// left gap btw canvas and window
-var CBOARDERT = 100;		// top gap btw canvas and window
-const PBOARDERL = 10;		// left gap btw plot line and canvas
-const PBOARDERT = 10;		// top gap btw plot line and canvas
-const PBOARDERB = 20;
+var CBOARDERL = 200;		// left gap btw plot and canvas
+var CBOARDERT = 100;		// top gap btw plot and canvas
+const PBOARDERL = 1;		// left gap btw plot line and plot
+const PBOARDERB = 1;		// bottom gap btw plot line and plot
 var CWIDTH = 800;
 var PWIDTH = CWIDTH - PBOARDERL*2;
 var CHEIGHT = 600;
@@ -56,23 +57,32 @@ var xbuffer = new Float32Array(BUFFSIZE);
 var fc = document.getElementById("fg"),
 		fg = fc.getContext("2d");
 
+
+var cc = document.getElementById("cg"),
+		cg = cc.getContext("2d");
+		
+
 function createFront() {
     fc.width = window.innerWidth;
+	cc.width = window.innerWidth;
 	CBOARDERL = fc.width * 0.1;
     CWIDTH = fc.width * 0.7;
     PWIDTH = CWIDTH - PBOARDERL*2;
     fc.height = window.innerHeight;
+	cc.height = window.innerHeight;
 	CBOARDERT = fc.height * 0.1
     CHEIGHT = fc.height * 0.7;
     PHEIGHT = CHEIGHT - PBOARDERB;
     YSCALE = (PHEIGHT / 255);
-    scaleX(FRAMESIZE);
-
-
+	
+	fg.strokeStyle="yellow";
 	fg.fillStyle = "black";
 	fg.lineWidth = 3;
+	cg.strokeStyle="red";
+    
 	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
-	fg.strokeStyle="yellow";
+	scaleX(FRAMESIZE);
+	drawCoord(xbuffer);
 }
 
 $( window ).resize(createFront);
@@ -175,7 +185,7 @@ function drawData(){
 	fg.beginPath();
 	let num = 0;
 	for(let i = 0; i < FRAMESIZE; i++){
-		num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
+		num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERB ) + CBOARDERT ;
 		fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
 	}
 	fg.stroke();
@@ -197,6 +207,26 @@ function drawDataEvent(){
 	}
 }
 
+//--- Draw coordinate
+function drawCoord(x){
+	cg.beginPath();
+	cg.setLineDash([15,3]);
+	let gaph = BUFFSIZE/10;
+	let gapv = CHEIGHT/10;
+	for(let i = 1; i<10; i++){
+		cg.beginPath();
+		cg.moveTo(x[gaph * i], CHEIGHT + CBOARDERT);
+		cg.lineTo(x[gaph * i], CBOARDERT);
+		cg.stroke();
+	}
+	for(let i = 1; i<10; i++){
+		cg.beginPath();
+		cg.moveTo(x[0], CBOARDERT + gapv * i);
+		cg.lineTo(x[BUFFSIZE], CBOARDERT + gapv * i);
+		cg.stroke();
+	}
+
+}
 
 </script>
 </body>

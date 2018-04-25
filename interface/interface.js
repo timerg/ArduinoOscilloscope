@@ -90,18 +90,18 @@ function write0ToBuffer(){
 		let startPoint = buffCount*DATASIZE;
 		for(let i = startPoint; i < startPoint + DATASIZE; i++){
 			buffer[i] = 0;
-		}
+ 		}
 		buffCount = (buffCount + 1) % FRAMELIMIT;
 	}, div * DATASIZE * DIVTOSR / 16000)
 }
 
 
-
 socket.on('data', function (dataArray){
-    clearInterval(write0ToBufferID);
-    buffer.set(dataArray, buffCount * DATASIZE);
+		clearInterval(write0ToBufferID);
+		let view   = new Uint8Array(dataArray);
+    buffer.set(view, buffCount * DATASIZE);
     buffCount = (buffCount + 1) % FRAMELIMIT;
-    write0ToBuffer();
+		write0ToBuffer();
 });
 
 

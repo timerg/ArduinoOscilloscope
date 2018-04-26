@@ -17,7 +17,7 @@
 	
 //-------- User parameter
   #define _DEBUG_
-	#define ADCARRAYSIZE 2560
+	#define ADCARRAYSIZE 1280
 	#define WAITCYCLES 1280
  #define BUFFLIMIT 10   //25k
 	

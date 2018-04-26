@@ -1,3 +1,6 @@
+const WRITETOFILE = true;
+const fs = require('fs');
+var file;
 
 // Serial Port
 var SerialPort = require('serialport');
@@ -17,9 +20,13 @@ app.use(express.static(__dirname + '/'));
 
 io.on('connection', function (socket) {
   socket.on('start', function () {
+    if(WRITETOFILE){
+      file = fs.openSync("./dataLog.txt", 'w+');
+    }
     port.open();
   });
   socket.on('stop', function () {
+    port.flush();
     port.close();
   });
 });
@@ -32,7 +39,7 @@ const port = new SerialPort(dev, {
   baudRate: 9600,
   autoOpen: false
 });
-const parser = port.pipe(new ByteLength({length: 1280}));
+const parser = port.pipe(new ByteLength({length: 50}));
 
 
 
@@ -40,10 +47,22 @@ port.on('error', function(err) {
   console.log('Error: ', err.message);
 })
 
+
 port.on('open', () => {
   console.log("Port Open");
+  parser.on('error', (err) => {
+    console.log('Error: ', err.message);
+  });
   parser.on('data', (buffer) => {
-      io.emit('data', buffer);
+      console.log(buffer);
+      // if(WRITETOFILE){
+      //   let view = new Uint8Array(buffer);
+      //   fs.writeFileSync(file, view.toString(), {flag: 'a'},  (err) => {
+      //     if (err) throw err;
+      //   })
+      //   console.log("write to file!!");
+      // }
+      // io.emit('data', buffer);
   });
 })
 

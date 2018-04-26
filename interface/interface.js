@@ -2,7 +2,7 @@
 
 const BUFFLIMIT = 50;
 const DATAGAP = 10
-const DATASIZE = 1280;
+const DATASIZE = 3840;
 const BUFFSIZE = DATASIZE * BUFFLIMIT;
 var FRAMELIMIT = 50;
 var FRAMESIZE = DATASIZE * FRAMELIMIT;
@@ -97,11 +97,11 @@ function write0ToBuffer(){
 
 
 socket.on('data', function (dataArray){
-		clearInterval(write0ToBufferID);
+		// clearInterval(write0ToBufferID);
 		let view   = new Uint8Array(dataArray);
     buffer.set(view, buffCount * DATASIZE);
     buffCount = (buffCount + 1) % FRAMELIMIT;
-		write0ToBuffer();
+		// write0ToBuffer();
 });
 
 

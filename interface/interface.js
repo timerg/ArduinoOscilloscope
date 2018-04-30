@@ -2,7 +2,11 @@
 
 const BUFFLIMIT = 50;
 const DATAGAP = 10
+<<<<<<< HEAD
 const DATASIZE = 2560;
+=======
+const DATASIZE = 3840;
+>>>>>>> e676527b6c1761acdfdd58ee1b733c01666d932d
 const BUFFSIZE = DATASIZE * BUFFLIMIT;
 var FRAMELIMIT = 50;
 var FRAMESIZE = DATASIZE * FRAMELIMIT;

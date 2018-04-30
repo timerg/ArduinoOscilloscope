@@ -1,4 +1,4 @@
-const WRITETOFILE = false;
+const WRITETOFILE = true;
 const fs = require('fs');
 var file;
 
@@ -39,7 +39,7 @@ const port = new SerialPort(dev, {
   baudRate: 9600,
   autoOpen: false
 });
-const parser = port.pipe(new ByteLength({length: 2560}));
+const parser = port.pipe(new ByteLength({length: 2560 + 12}));
 
 
 
@@ -61,7 +61,7 @@ port.on('open', () => {
         })
         console.log("write to file!!");
       }
-      io.emit('data', buffer);
+      // io.emit('data', buffer);
   });
 })
 

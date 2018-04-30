@@ -4,6 +4,5 @@
 
   void freeze(void);
   void restart(void);
-
   
 #endif

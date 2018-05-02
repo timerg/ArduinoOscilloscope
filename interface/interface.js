@@ -103,7 +103,7 @@ function write0ToBuffer(){
 socket.on('data', function (dataArray){
 		//clearInterval(write0ToBufferID);
 		let view   = new Uint8Array(dataArray);
-    buffer.set(view, buffCount * DATASIZE);
+    buffer.set(view.slice(4), buffCount * DATASIZE);
     buffCount = (buffCount + 1) % FRAMELIMIT;
 		//write0ToBuffer();
 });

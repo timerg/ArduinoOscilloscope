@@ -5,7 +5,7 @@ var file;
 // Serial Port
 var SerialPort = require('serialport');
 const ByteLength = SerialPort.parsers.ByteLength;
-const MyDelimiter = require('./MyDelimiterParser')
+const HeaderParser = require('./MyHeaderParser')
 // SocketiO server
 var express = require('express')
 var app = express();
@@ -41,12 +41,12 @@ const port = new SerialPort(dev, {
   autoOpen: false
 });
 
-const dataParser = new MyDelimiter({
-  length: 1280 + 4,
-  delimiter: "data"
+const headerParser = new HeaderParser({
+  bodyLength: 1280 + 4,
+  header: "data"
 });
-// const dataParser = new ByteLength({length: 1280 + 4});
-port.pipe(dataParser);
+const dataParser = new ByteLength({length: 1280 + 4});
+port.pipe(headerParser).pipe(dataParser);
 
 
 
@@ -58,7 +58,6 @@ port.on('open', () => {
   console.log("Port Open");
   dataParser.on('ready', () => {console.log("ready")})
   dataParser.on('data', (buffer) => {
-    console.log("dataParser: data\n");
 		if(WRITETOFILE){
 					let view = new Uint8Array(buffer);
 					fs.writeFileSync(file, view.toString() + "\n\n", {flag: 'a'},  (err) => {

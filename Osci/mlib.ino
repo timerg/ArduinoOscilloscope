@@ -1,26 +1,31 @@
 #include "mlib.h"
 
 
-
 void freeze(void){
-  cbi(ADCSRA, ADEN);    // Stop ADC
-  cbi(ACSR, ACIE );     // Stop Comparator
+  //cbi(ADCSRA, ADEN);    // Stop ADC
   waitCount = 0;
-  waitState = -1;
   sendArray();
   restart();
 }
 
 void restart(void){
   arrayCount = 0;
-  memset((void*) adcArray, 0, sizeof(adcArray)); 
-  sbi(ADCSRA, ADEN);
+  memset((void*) adcArray, 0, sizeof(adcArray));
+  //sbi(ADCSRA, ADEN);
   sbi(ACSR, ACIE );
-  bitWrite(ADCSRA, 6, 1);
+  writeToArray = ON;
+  //bitWrite(ADCSRA, 6, 1);
 }
 
 void sendArray(){
-  Serial.write((uint8_t*) adcArray + arrayCount, arrayCount); // before comparator itr
+  Serial.print("data");
+  byte buf[4];
+  buf[0] = header_time & 255;
+  buf[1] = (header_time >> 8)  & 255;
+  buf[2] = (header_time >> 16) & 255;
+  buf[3] = (header_time >> 24) & 255;
+  Serial.write(buf, sizeof(buf));
+  Serial.write((uint8_t*) adcArray, arrayCount); // before comparator itr
   Serial.write((uint8_t*) adcArray + arrayCount, ADCARRAYSIZE - arrayCount);    //after comparator itr
 }
 

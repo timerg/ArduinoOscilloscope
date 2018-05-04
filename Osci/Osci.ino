@@ -38,7 +38,7 @@ void loop(){
   if(waitCount >= WAITCYCLES){
     freeze();
   }
-
+  
 }
 
 

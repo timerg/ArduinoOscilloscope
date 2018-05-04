@@ -3,16 +3,31 @@
 
 ISR(ADC_vect)
 {
-  adcArray[arrayCount] = ADCH;
-  arrayCount = (arrayCount + 1) % ADCARRAYSIZE;
-  if(waitState == 1){
+  if(timerState == ON){
+    timerCount++;
+  }
+  
+  if(writeToArray == ON){
+    adcArray[arrayCount] = ADCH;
+    arrayCount = (arrayCount + 1) % ADCARRAYSIZE;
+  }
+
+  if(waitState == ON){
     waitCount++;
     if(waitCount == WAITCYCLES){
-      cbi(ADCSRA, ADEN);
+      waitState = OFF;
+      writeToArray = OFF;
+
+      // start timer
+      timerState = ON;
+      timerCount = 0;
     } 
   }
 }
 
 ISR(ANALOG_COMP_vect){
-  waitState = 1;
+  cbi(ACSR, ACIE );
+  waitState = ON;
+  timerState = OFF;
+  header_time = timerCount;
 }

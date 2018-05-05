@@ -112,9 +112,9 @@ socket.on('data', function (dataArray){
 		// insert data
 		let insertPointNext;
 		if(DATASIZE - insertPoint < FRAMESIZE){
-			// insertPointNext = FRAMESIZE - (DATASIZE - insertPoint);
-			// buffer.set(datas.subarray(0, DATASIZE - insertPoint), insertPoint);
-			// buffer.set(datas.subarray(DATASIZE - insertPoint), 0 , insertPointNext);
+			insertPointNext = FRAMESIZE - (DATASIZE - insertPoint);
+			buffer.set(datas.subarray(0, DATASIZE - insertPoint), insertPoint);
+			buffer.set(datas.subarray(DATASIZE - insertPoint), 0 , insertPointNext);
 
 		} else {
 			insertPointNext = insertPoint + FRAMESIZE;
@@ -155,22 +155,20 @@ function drawData(){
 		}
 		fg.stroke();
 	} else {
-		// fg.fillRect(xbuffer[drawBegin], CBOARDERT, xbuffer[DATASIZE - 1] - xbuffer[drawBegin], CHEIGHT);
-		// for(let i = drawBegin; i < DATASIZE; i++){
-		// 	num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
-		// 	fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
-		// }
-		// fg.stroke();
-		// fg.fillRect(CBOARDERL, CBOARDERT, xbuffer[drawEnd] - CBOARDERL - PBOARDERL, CHEIGHT);
-		// for(let i = 0; i < drawEnd; i++){
-		// 	num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
-		// 	fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
-		// }
-		// fg.stroke();
+		fg.fillRect(xbuffer[drawBegin], CBOARDERT, xbuffer[DATASIZE - 1] - xbuffer[drawBegin], CHEIGHT);
+		for(let i = drawBegin; i < DATASIZE; i++){
+			num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
+			fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
+		}
+		fg.stroke();
+		fg.fillRect(CBOARDERL, CBOARDERT, xbuffer[drawEnd] - CBOARDERL - PBOARDERL, CHEIGHT);
+		for(let i = 0; i < drawEnd; i++){
+			num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
+			fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
+		}
+		fg.stroke();
 	}
 	drawBegin = drawEnd;
-	// fg.fillStyle = "#ffffff"
-	// fg.fillRect(xbuffer[buffCount * FRAMESIZE], CBOARDERT, 3, CHEIGHT);
 	drawDataID = requestAnimationFrame(drawData);
 }
 

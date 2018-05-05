@@ -1,3 +1,6 @@
+/* When meet a 'header', push a fixed size data chunk then discard other data if no more header is meet.
+*/
+
 'use strict'
 const Buffer = require('safe-buffer').Buffer
 const Transform = require('stream').Transform

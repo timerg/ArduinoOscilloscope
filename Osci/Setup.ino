@@ -25,8 +25,8 @@ void adcSetup(){
   sbi(ADCSRA,ADIE);
   
   sbi(ADCSRA,ADPS2);
-  cbi(ADCSRA,ADPS1);
-  cbi(ADCSRA,ADPS0);  // prescale = 1/16
+  sbi(ADCSRA,ADPS1);
+  sbi(ADCSRA,ADPS0);  // prescale = 1/128
         
 
   

@@ -6,7 +6,7 @@ volatile int32_t waitCount;
 volatile unsigned long timerCount;
 //--------- State
 volatile int8_t waitState;
-volatile int8_t timerState;    // ISR(ANALOG_COMP_vect): 1 -> OFF,  (waitCount == WAITCYCLES): 0 -> OFF
+volatile int8_t timerState;    // ISR(ANALOG_COMP_vect): ON -> OFF,  (waitCount == WAITCYCLES): OFF -> ON
 volatile int8_t writeToArray;
 //--------- Value
 volatile uint8_t adcReadVal;

@@ -58,15 +58,17 @@ port.on('open', () => {
   console.log("Port Open");
   dataParser.on('ready', () => {console.log("ready")})
   dataParser.on('data', (buffer) => {
+    console.log("data");
 		if(WRITETOFILE){
 					let view = new Uint8Array(buffer);
 					fs.writeFileSync(file, view.toString() + "\n\n", {flag: 'a'},  (err) => {
 						if (err) throw err;
 					})
 					console.log("write to file!!");
-		}
+		} else {
+      io.emit('data', buffer);
+    }
   })
-  // io.emit('data', buffer);
 })
 
 port.on('close', () => {

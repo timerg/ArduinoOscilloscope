@@ -19,6 +19,7 @@ void restart(void){
 
 void sendArray(){
   Serial.print("data");
+  Serial.println(header_time);
   byte buf[4];
   buf[0] = header_time & 255;
   buf[1] = (header_time >> 8)  & 255;
@@ -27,6 +28,7 @@ void sendArray(){
   Serial.write(buf, sizeof(buf));
   Serial.write((uint8_t*) adcArray, arrayCount); // before comparator itr
   Serial.write((uint8_t*) adcArray + arrayCount, ADCARRAYSIZE - arrayCount);    //after comparator itr
+  Serial.println(" ");
 }
 
 

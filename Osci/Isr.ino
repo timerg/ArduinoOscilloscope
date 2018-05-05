@@ -29,5 +29,5 @@ ISR(ANALOG_COMP_vect){
   cbi(ACSR, ACIE );
   waitState = ON;
   timerState = OFF;
-  header_time = timerCount;
+  header_time = timerCount - (ADCARRAYSIZE - WAITCYCLES);
 }

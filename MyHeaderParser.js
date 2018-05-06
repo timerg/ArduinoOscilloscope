@@ -59,46 +59,6 @@ class HeaderParser extends Transform {
       }
     }
     cb();
-    // let chunkOffset = 0;
-    // if(this.position !== 0){
-    //   while (cursor < chunk.length) {
-    //     this.buffer[this.position] = chunk[chunkOffset];
-    //     this.position++;
-    //     if (this.position === this.length) {
-    //       this.push(this.buffer);
-    //       this.buffer = Buffer.alloc(this.length);
-    //       this.position = 0;
-    //       this.readOffset = 0;
-    //       break;
-    //     }
-    //     chunkOffset++;
-    //   }
-    // }
-    //
-    // while(chunkOffset < chunk.length){
-    //   if (delimiter[this.readOffset] === chunk[chunkOffset]) {
-    //     this.readOffset++;
-    //     chunkOffset++;
-    //     if (this.readOffset === delimiter.length){
-    //       while (cursor < chunk.length) {
-    //         this.buffer[this.position] = chunk[chunkOffset];
-    //         this.position++;
-    //         if (this.position === this.length) {
-    //           this.push(this.buffer);
-    //           this.buffer = Buffer.alloc(this.length);
-    //           this.position = 0;
-    //           this.readOffset = 0;
-    //           break;
-    //         }
-    //       }
-    //     }
-    //   } else {
-    //     this.readOffset = 0
-    //   }
-    //   chunkOffset++;
-    // }
-    // cb();
-
   }
   _flush (cb) {
     this.push(this.buffer.slice(0, this.position));

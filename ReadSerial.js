@@ -58,7 +58,6 @@ port.on('open', () => {
   console.log("Port Open");
   dataParser.on('ready', () => {console.log("ready")})
   dataParser.on('data', (buffer) => {
-    console.log("data");
 		if(WRITETOFILE){
 					let view = new Uint8Array(buffer);
 					fs.writeFileSync(file, view.toString() + "\n\n", {flag: 'a'},  (err) => {

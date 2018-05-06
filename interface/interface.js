@@ -8,8 +8,6 @@ var FRAMES = 10;
 var DATASIZE = FRAMESIZE * FRAMES;
 var div = 128;		// determine by arduino adc ADCSRA register.  128/64/32/16/8
 const DIVTOSR = 13;	// A factor related to ADC cycles per sample. div only decides the input clk that ADC uses.
-var drawBegin = 0;
-var drawEnd = 0;
 
 
 //-- Canvas position
@@ -85,43 +83,15 @@ function scaleX(frameSize){
 }
 scaleX(DATASIZE);
 
-// var write0ToBufferID;
-// function write0ToBuffer(){
-// 	write0ToBufferID = window.setInterval(function(){
-// 		let startPoint = buffCount*FRAMESIZE;
-// 		for(let i = startPoint; i < startPoint + FRAMESIZE; i++){
-// 			buffer[i] = 0;
-//  		}
-// 		buffCount = (buffCount + 1) % FRAMES;
-// 	}, div * FRAMESIZE * DIVTOSR / 16000)
-// }
 
 var insertPoint = 0
 
 socket.on('data', function (dataArray){
-		let view  = new Uint8Array(dataArray);
-		let timer = new Uint32Array(view.slice(0, 4))[0];
-		let datas = view.slice(4);
-		// use canvas fillRect to cover the old
-		// drawBegin = insertPoint;
-		if(DATASIZE - insertPoint < timer){
-			insertPoint = timer - (DATASIZE - insertPoint);
-		} else {
-			insertPoint = insertPoint + timer;
-		}
-		// insert data
-		let insertPointNext;
-		if(DATASIZE - insertPoint < FRAMESIZE){
-			// insertPointNext = FRAMESIZE - (DATASIZE - insertPoint);
-			// buffer.set(datas.subarray(0, DATASIZE - insertPoint), insertPoint);
-			// buffer.set(datas.subarray(DATASIZE - insertPoint), 0 , insertPointNext);
-
-		} else {
-			insertPointNext = insertPoint + FRAMESIZE;
-			buffer.set(datas, insertPoint, insertPointNext);
-		}
-		drawEnd = insertPointNext;
-		insertPoint = insertPointNext;
+	let view  = new Uint8Array(dataArray);
+	let timer = new Uint32Array(view.slice(0, 4))[0];
+	let datas = view.slice(4);
+  buffer.set(view.subarray(4), buffCount * FRAMESIZE);
+  buffCount = (buffCount + 1) % FRAMES;
 });
 
 
@@ -145,32 +115,16 @@ function startStream(){
 var drawDataID;
 function drawData(){
 	fg.fillStyle = "black"
-	if(drawBegin < drawEnd){
-		fg.fillRect(xbuffer[drawBegin], CBOARDERT, xbuffer[drawEnd] - xbuffer[drawBegin] + 10, CHEIGHT);
-		fg.beginPath();
-		let num = 0;
-		for(let i = drawBegin; i < drawEnd; i++){
-			num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
-			fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
-		}
-		fg.stroke();
-	} else {
-		// fg.fillRect(xbuffer[drawBegin], CBOARDERT, xbuffer[DATASIZE - 1] - xbuffer[drawBegin], CHEIGHT);
-		// for(let i = drawBegin; i < DATASIZE; i++){
-		// 	num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
-		// 	fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
-		// }
-		// fg.stroke();
-		// fg.fillRect(CBOARDERL, CBOARDERT, xbuffer[drawEnd] - CBOARDERL - PBOARDERL, CHEIGHT);
-		// for(let i = 0; i < drawEnd; i++){
-		// 	num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
-		// 	fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
-		// }
-		// fg.stroke();
+	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
+	fg.beginPath();
+	let num = 0;
+	for(let i = 0; i < DATASIZE; i++){
+		num = CHEIGHT - (buffer[i] * YSCALE + PBOARDERT) + CBOARDERT ;
+		fg.lineTo(xbuffer[i], num);		// the plot x position doesn't change with data. It's x label should change
 	}
-	drawBegin = drawEnd;
-	// fg.fillStyle = "#ffffff"
-	// fg.fillRect(xbuffer[buffCount * FRAMESIZE], CBOARDERT, 3, CHEIGHT);
+	fg.stroke();
+	fg.fillStyle = "#ffffff"
+	fg.fillRect(xbuffer[buffCount * FRAMESIZE], CBOARDERT, 3, CHEIGHT);
 	drawDataID = requestAnimationFrame(drawData);
 }
 

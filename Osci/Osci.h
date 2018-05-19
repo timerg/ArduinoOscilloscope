@@ -19,7 +19,6 @@
   #define _DEBUG_
 	#define ADCARRAYSIZE 1280
 	#define WAITCYCLES 640
- #define BUFFLIMIT 10   //25k
  #define ON 1
  #define OFF -1
 

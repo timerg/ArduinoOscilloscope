@@ -1,5 +1,6 @@
+<img src='Osci.png' width="1000" />
+
 # Oscilloscope with Arduino
-<img src='Osci.png' width="240" />
 
 Use Arduino and canvas to make a simple Oscilloscope.
 

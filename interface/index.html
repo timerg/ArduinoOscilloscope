@@ -22,7 +22,7 @@ const BUFFLIMIT = 50;
 const DATAGAP = 10
 const DATASIZE = 1280;
 const BUFFSIZE = DATASIZE * BUFFLIMIT;
-var FRAMELIMIT = 50;
+var FRAMELIMIT = 1;
 var FRAMESIZE = DATASIZE * FRAMELIMIT;
 var div = 128;		// determine by arduino adc ADCSRA register.  128/64/32/16/8
 const DIVTOSR = 13;	// A factor related to ADC cycles per sample. div only decides the input clk that ADC uses.
@@ -60,7 +60,7 @@ var fc = document.getElementById("fg"),
 
 var cc = document.getElementById("cg"),
 		cg = cc.getContext("2d");
-		
+
 
 function createFront() {
     fc.width = window.innerWidth;
@@ -74,12 +74,12 @@ function createFront() {
     CHEIGHT = fc.height * 0.7;
     PHEIGHT = CHEIGHT - PBOARDERB;
     YSCALE = (PHEIGHT / 255);
-	
+
 	fg.strokeStyle="yellow";
 	fg.fillStyle = "black";
 	fg.lineWidth = 3;
 	cg.strokeStyle="red";
-    
+
 	fg.fillRect(CBOARDERL, CBOARDERT, CWIDTH, CHEIGHT);
 	scaleX(FRAMESIZE);
 	drawCoord(xbuffer);

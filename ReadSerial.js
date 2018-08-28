@@ -1,6 +1,7 @@
-const WRITETOFILE = true;
+const WRITETOFILE = false;
 const fs = require('fs');
 var file;
+
 
 // Serial Port
 var SerialPort = require('serialport');
